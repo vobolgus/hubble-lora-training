@@ -7,13 +7,15 @@ set -e
 # Environment setup for Apple Silicon
 export PYTORCH_ENABLE_MPS_FALLBACK=1
 export PYTORCH_MPS_HIGH_WATERMARK_RATIO=0.0
+export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES
+export TOKENIZERS_PARALLELISM=false
 
 # Paths
-BASE_DIR="/Users/svyatoslav.suglobov/PycharmProjects/ImageProcessing-HW"
+BASE_DIR="/Users/svyatoslav.suglobov/PycharmProjects/hubble-lora-training"
 SD_SCRIPTS="${BASE_DIR}/sd-scripts"
-DATASET_CONFIG="${BASE_DIR}/classification-base/lora_training/dataset.toml"
-OUTPUT_DIR="${BASE_DIR}/classification-base/lora_training/output"
-LOG_DIR="${BASE_DIR}/classification-base/lora_training/logs"
+DATASET_CONFIG="${BASE_DIR}/lora_training/dataset.toml"
+OUTPUT_DIR="${BASE_DIR}/lora_training/output"
+LOG_DIR="${BASE_DIR}/lora_training/logs"
 
 # Training parameters
 NETWORK_DIM=16          # LoRA rank (8-32 typical, higher = more expressive)
@@ -36,14 +38,16 @@ echo "=========================================="
 # Model paths (downloaded locally)
 FLUX_MODEL="${BASE_DIR}/models/flux1-dev"
 
-ACCELERATE_CONFIG="${BASE_DIR}/classification-base/accelerate_config_mps.yaml"
+ACCELERATE_CONFIG="${BASE_DIR}/accelerate_config_mps.yaml"
 
-pipenv run accelerate launch --config_file "${ACCELERATE_CONFIG}" \
-    "${SD_SCRIPTS}/flux_train_network.py" \
+/Library/Frameworks/Python.framework/Versions/3.12/bin/python3 -c "
+import multiprocessing
+multiprocessing.set_start_method('spawn', force=True)
+exec(open('${SD_SCRIPTS}/flux_train_network.py').read())
+" \
     --pretrained_model_name_or_path "${FLUX_MODEL}/flux1-dev.safetensors" \
     --clip_l "${FLUX_MODEL}/text_encoder/model.safetensors" \
     --t5xxl "${FLUX_MODEL}/text_encoder_2/t5xxl.safetensors" \
-    --disable_mmap_load_safetensors \
     --ae "${FLUX_MODEL}/ae.safetensors" \
     --dataset_config "${DATASET_CONFIG}" \
     --output_dir "${OUTPUT_DIR}" \
@@ -63,13 +67,11 @@ pipenv run accelerate launch --config_file "${ACCELERATE_CONFIG}" \
     --full_fp16 \
     --gradient_checkpointing \
     --cache_latents \
-    --cache_latents_to_disk \
     --sdpa \
     --logging_dir "${LOG_DIR}" \
     --seed 42 \
     --caption_extension ".txt" \
-    --max_data_loader_n_workers 2 \
-    --persistent_data_loader_workers \
+    --max_data_loader_n_workers 0 \
     --metadata_title "Hubble Messier Style" \
     --metadata_author "vobolgus" \
     --metadata_description "LoRA trained on NASA Hubble Messier catalog images for cosmic/space style" \
