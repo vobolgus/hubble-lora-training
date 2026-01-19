@@ -1,0 +1,13 @@
+[general]
+shuffle_caption = true
+caption_extension = ".txt"
+keep_tokens = 1
+
+[[datasets]]
+resolution = 1024
+batch_size = 1
+enable_bucket = true
+
+  [[datasets.subsets]]
+  image_dir = "/Users/svyatoslav.suglobov/PycharmProjects/ImageProcessing-HW/classification-base/lora_training/dataset/img"
+  num_repeats = 20

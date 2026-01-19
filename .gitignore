@@ -1,0 +1,25 @@
+# Dataset images (regenerate with download_messier.py and prepare_dataset.py)
+messier_images/
+lora_training/dataset/img/*.png
+lora_training/dataset/img/*.txt
+
+# Training outputs
+lora_training/output/
+lora_training/logs/
+
+# Models (download separately)
+models/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
